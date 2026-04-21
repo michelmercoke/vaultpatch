@@ -62,3 +62,12 @@ def test_format_diff_no_diffs():
 def test_diff_path_preserved():
     diffs = diff_secrets("secret/myapp/prod", {"x": "1"}, {"x": "2"})
     assert diffs[0].path == "secret/myapp/prod"
+
+
+def test_diff_counts():
+    """Verify the total number of changed, added, and removed entries."""
+    diffs = diff_secrets("secret/app", CURRENT, DESIRED)
+    assert sum(1 for d in diffs if d.is_changed) == 1
+    assert sum(1 for d in diffs if d.is_added) == 1
+    assert sum(1 for d in diffs if d.is_removed) == 1
+    assert len(diffs) == 3
