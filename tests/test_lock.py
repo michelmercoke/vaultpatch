@@ -1,5 +1,6 @@
 """Tests for vaultpatch.lock."""
 
+import os
 import time
 from pathlib import Path
 
@@ -37,7 +38,6 @@ def test_stale_lock_is_replaced(lock_dir, monkeypatch):
     path.write_text("99999")
     # backdate mtime by 400s
     old_time = time.time() - 400
-    import os
     os.utime(path, (old_time, old_time))
 
     result = acquire_lock("prod", lock_dir=lock_dir, ttl=300)
@@ -57,7 +57,6 @@ def test_release_missing_lock_returns_true(lock_dir):
 
 
 def test_lock_file_contains_pid(lock_dir):
-    import os
     acquire_lock("check-pid", lock_dir=lock_dir)
     path = _lock_path("check-pid", lock_dir)
     assert path.read_text() == str(os.getpid())
@@ -67,3 +66,12 @@ def test_namespace_slash_sanitised(lock_dir):
     acquire_lock("ns/with/slashes", lock_dir=lock_dir)
     path = _lock_path("ns/with/slashes", lock_dir)
     assert "/" not in path.name
+
+
+def test_acquire_creates_lock_dir_if_missing(tmp_path):
+    """lock_dir should be created automatically when it does not exist."""
+    lock_dir = tmp_path / "deeply" / "nested" / "locks"
+    assert not lock_dir.exists()
+    result = acquire_lock("auto-mkdir", lock_dir=lock_dir)
+    assert result.acquired
+    assert lock_dir.is_dir()
