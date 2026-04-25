@@ -26,7 +26,17 @@ def promote_path(
     path: str,
     dry_run: bool = False,
 ) -> PromoteResult:
-    """Read secret at path from source and write it to target."""
+    """Read secret at path from source and write it to target.
+
+    Args:
+        source_cfg: Configuration for the source namespace.
+        target_cfg: Configuration for the target namespace.
+        path: KV v2 path of the secret to promote (excluding mount prefix).
+        dry_run: When True, read the secret but skip the write step.
+
+    Returns:
+        A :class:`PromoteResult` describing the outcome.
+    """
     src_client = _make_client(source_cfg)
     mount = source_cfg.mount
 
@@ -80,6 +90,30 @@ def promote_paths(
     paths: List[str],
     dry_run: bool = False,
 ) -> List[PromoteResult]:
+    """Promote multiple secret paths from source to target.
+
+    Args:
+        source_cfg: Configuration for the source namespace.
+        target_cfg: Configuration for the target namespace.
+        paths: List of KV v2 paths to promote.
+        dry_run: When True, read secrets but skip all write steps.
+
+    Returns:
+        A list of :class:`PromoteResult` objects, one per path.
+    """
     return [
         promote_path(source_cfg, target_cfg, p, dry_run=dry_run) for p in paths
     ]
+
+
+def summarise_results(results: List[PromoteResult]) -> Dict[str, int]:
+    """Return a summary count of successes and failures.
+
+    Args:
+        results: Results returned by :func:`promote_paths`.
+
+    Returns:
+        A dict with keys ``"success"`` and ``"failure"`` containing counts.
+    """
+    success = sum(1 for r in results if r.success)
+    return {"success": success, "failure": len(results) - success}
