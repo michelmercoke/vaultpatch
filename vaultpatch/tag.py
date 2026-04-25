@@ -52,6 +52,10 @@ class TagStore:
     def all_entries(self) -> List[TagEntry]:
         return list(self._entries.values())
 
+    def all_tags(self) -> List[str]:
+        """Return a sorted list of all unique tags across all entries."""
+        return sorted({tag for entry in self._entries.values() for tag in entry.tags})
+
     def to_dict(self) -> dict:
         return {
             "version": TAG_FILE_VERSION,
