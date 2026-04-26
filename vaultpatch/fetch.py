@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import hvac
 
@@ -18,6 +18,11 @@ class FetchResult:
     @property
     def success(self) -> bool:
         return len(self.errors) == 0
+
+    @property
+    def failed_paths(self) -> List[str]:
+        """Return a list of paths that encountered errors during fetching."""
+        return list(self.errors.keys())
 
 
 def _make_client(cfg: NamespaceConfig) -> hvac.Client:
