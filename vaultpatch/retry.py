@@ -36,7 +36,21 @@ def with_retry(
     *,
     sleep_fn: Callable[[float], None] = time.sleep,
 ) -> RetryResult:
-    """Call *fn* up to config.attempts times, backing off on retryable errors."""
+    """Call *fn* up to config.attempts times, backing off on retryable errors.
+
+    Args:
+        fn: The callable to invoke. It must take no arguments; use
+            ``functools.partial`` to bind arguments beforehand.
+        config: Retry configuration. Defaults to :class:`RetryConfig` with
+            ``attempts=3``, ``delay=1.0`` s, and ``backoff=2.0``.
+        sleep_fn: Callable used to sleep between attempts. Defaults to
+            ``time.sleep``; pass a no-op or mock in tests.
+
+    Returns:
+        A :class:`RetryResult` describing whether the call ultimately
+        succeeded, the return value (if any), the last error message, and
+        the total number of attempts made.
+    """
     cfg = config or RetryConfig()
     delay = cfg.delay
     last_error: Optional[Exception] = None
